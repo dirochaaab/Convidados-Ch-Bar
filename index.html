@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lista de Convidados</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF6EF; --ink:#2E3D34; --gold:#D8B25C; --green:#3E7A52;
+    --doce:#B8637A; --doce-bg:#FBEEF1; --salgado:#5C7A5E; --salgado-bg:#EEF3EC;
+    --border:#e7e3da; --text:#292524; --muted:#78716c;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  .font-display{font-family:'Fraunces',serif;}
+  header{background:var(--ink);padding:36px 24px 32px;}
+  header .wrap{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  header h1{color:#fff;font-size:32px;margin:0;font-weight:600;}
+  header p{color:#c9c4b8;margin:4px 0 0;font-size:14px;}
+  .save-indicator{color:#c9c4b8;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  main{max-width:900px;margin:0 auto;padding:28px 24px 60px;}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:28px;}
+  @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr);}}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;}
+  .stat-label{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:4px;}
+  .stat-value{font-family:'Fraunces',serif;font-size:28px;font-weight:700;}
+  .stat-value small{font-size:13px;font-weight:400;color:#a8a29e;margin-left:4px;}
+
+  .panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:28px;}
+  .panel h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+
+  .city-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .city-row span.name{font-size:14px;width:120px;color:#57534e;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bar-track{flex:1;height:10px;background:#f5f3ef;border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--gold);border-radius:6px;}
+  .city-row span.count{font-size:14px;font-weight:600;width:24px;text-align:right;}
+
+  .add-btn{width:100%;padding:14px;border-radius:12px;border:2px dashed #d6d3c7;background:transparent;color:var(--muted);font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px;font-size:14px;}
+  .add-btn:hover{border-color:var(--gold);color:var(--ink);}
+
+  input[type=text]{width:100%;border:1px solid #d6d3c7;border-radius:10px;padding:9px 12px;font-size:14px;font-family:inherit;outline:none;}
+  input[type=text]:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(216,178,92,.25);}
+  .grid2{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px;}
+  @media(min-width:600px){.grid2{grid-template-columns:1fr 1fr;}}
+
+  .row-flex{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px;}
+  .dish-toggle{display:flex;border:1px solid #d6d3c7;border-radius:10px;overflow:hidden;}
+  .dish-toggle button{padding:9px 16px;font-size:14px;font-weight:500;border:none;background:#fff;color:#78716c;cursor:pointer;}
+  .dish-toggle button.active-doce{background:var(--doce);color:#fff;}
+  .dish-toggle button.active-salgado{background:var(--salgado);color:#fff;}
+
+  .confirm-toggle{display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:10px;border:1px solid #d6d3c7;background:#fff;color:#78716c;font-size:14px;font-weight:500;cursor:pointer;}
+  .confirm-toggle.on{background:#eaf3ec;border-color:var(--green);color:#2c5a3c;}
+
+  label.field-label{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:600;}
+  .guest-row{display:flex;gap:8px;margin-top:8px;}
+  .guest-row input{flex:1;}
+  .guest-remove{background:none;border:none;color:#a8a29e;cursor:pointer;padding:0 6px;}
+  .guest-remove:hover{color:#ef4444;}
+  .add-guest-link{background:none;border:none;color:var(--ink);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;margin:10px 0 20px;padding:0;}
+
+  .btn-row{display:flex;gap:10px;}
+  .btn-primary{flex:1;background:var(--ink);color:#fff;border:none;border-radius:10px;padding:11px;font-weight:600;font-size:14px;cursor:pointer;}
+  .btn-secondary{background:#fff;border:1px solid #d6d3c7;color:#57534e;border-radius:10px;padding:11px 18px;font-weight:600;font-size:14px;cursor:pointer;}
+
+  .filters{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;}
+  .chip{white-space:nowrap;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid #d6d3c7;background:#fff;color:#78716c;cursor:pointer;}
+  .chip.active{background:var(--ink);border-color:var(--ink);color:#fff;}
+
+  .fam-card{background:#fff;border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;}
+  .fam-top{display:flex;align-items:center;gap:12px;padding:14px 16px;}
+  .confirm-circle{width:32px;height:32px;border-radius:50%;border:2px solid #d6d3c7;background:#fff;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:transparent;}
+  .confirm-circle.on{background:var(--green);border-color:var(--green);color:#fff;}
+  .fam-info{flex:1;min-width:0;cursor:pointer;}
+  .fam-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .fam-name{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .badge{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;}
+  .badge-doce{background:var(--doce-bg);color:var(--doce);}
+  .badge-salgado{background:var(--salgado-bg);color:var(--salgado);}
+  .badge-wait{background:#f5f3ef;color:#78716c;}
+  .fam-meta{font-size:12px;color:#78716c;margin-top:3px;display:flex;gap:14px;}
+  .fam-meta span{display:flex;align-items:center;gap:4px;}
+  .chevron{color:#a8a29e;cursor:pointer;background:none;border:none;flex-shrink:0;}
+
+  .fam-body{padding:0 16px 16px;border-top:1px solid #f1efe9;padding-top:12px;}
+  .guest-chip{display:inline-block;font-size:13px;background:#faf9f6;border:1px solid var(--border);border-radius:999px;padding:5px 12px;margin:0 6px 6px 0;}
+  .fam-actions{display:flex;gap:8px;margin-top:6px;}
+  .btn-mini{font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid #d6d3c7;background:#fff;color:#57534e;cursor:pointer;}
+  .btn-mini-danger{border-color:#fecaca;color:#ef4444;}
+  .btn-mini-danger:hover{background:#fef2f2;}
+
+  .empty{text-align:center;color:#a8a29e;padding:40px 0;font-size:14px;}
+  .footer-note{text-align:center;font-size:12px;color:#a8a29e;margin-top:32px;}
+  svg{display:inline-block;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D8B25C" stroke-width="2"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11v0c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98v0C9.52 4.9 9 5.52 9 6.23V7"/></svg>
+      <div>
+        <h1 class="font-display">Lista de Convidados</h1>
+        <p>Cada pessoa conta como um lugar à mesa</p>
+      </div>
+    </div>
+    <div class="save-indicator" id="saveIndicator"></div>
+  </div>
+</header>
+
+<main>
+  <section class="stats" id="statsSection"></section>
+  <section class="panel" id="citySection" style="display:none;">
+    <h3>📍 Por cidade</h3>
+    <div id="cityRows"></div>
+  </section>
+
+  <button class="add-btn" id="openFormBtn">+ Adicionar família</button>
+
+  <section class="panel" id="formPanel" style="display:none;">
+    <h3 id="formTitle">Nova família</h3>
+    <div class="grid2">
+      <input type="text" id="famName" placeholder="Nome da família" />
+      <input type="text" id="famCity" placeholder="Cidade" />
+    </div>
+    <div class="row-flex">
+      <div class="dish-toggle">
+        <button type="button" id="dishSalgado">Salgado</button>
+        <button type="button" id="dishDoce">Doce</button>
+      </div>
+      <button type="button" class="confirm-toggle" id="confirmToggle">✓ Presença confirmada</button>
+    </div>
+    <label class="field-label">Convidados (cada um conta como um lugar)</label>
+    <div id="guestFields"></div>
+    <button type="button" class="add-guest-link" id="addGuestBtn">+ Adicionar convidado</button>
+    <div class="btn-row">
+      <button class="btn-primary" id="saveFamBtn">Adicionar família</button>
+      <button class="btn-secondary" id="cancelFormBtn">Cancelar</button>
+    </div>
+  </section>
+
+  <div class="filters" id="filters" style="display:none;"></div>
+
+  <section id="famList"></section>
+
+  <p class="footer-note">Seus dados ficam salvos automaticamente neste navegador — pode fechar e voltar quando quiser.</p>
+</main>
+
+<script>
+const DISH = {
+  doce: { label: "Doce", cls: "badge-doce" },
+  salgado: { label: "Salgado", cls: "badge-salgado" }
+};
+const STORAGE_KEY = "lista-convidados-familias";
+
+let families = [];
+let draft = emptyDraft();
+let editingId = null;
+let cityFilter = "Todas";
+let openCardId = null;
+
+function emptyDraft(){
+  return { name:"", city:"", dish:"salgado", confirmed:false, guests:[""] };
+}
+
+function uid(){ return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2,9); }
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ families = JSON.parse(raw); }
+  }catch(e){ console.error("Erro ao carregar dados", e); families = []; }
+}
+
+let saveTimeout = null;
+function saveData(){
+  const ind = document.getElementById('saveIndicator');
+  ind.textContent = 'Salvando...';
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(()=>{
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(families));
+      ind.textContent = '✓ Salvo';
+    }catch(e){
+      ind.textContent = 'Erro ao salvar';
+    }
+    setTimeout(()=>{ if(ind.textContent === '✓ Salvo') ind.textContent=''; }, 1500);
+  }, 200);
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function render(){
+  renderStats();
+  renderCityBreakdown();
+  renderFilters();
+  renderFamList();
+}
+
+function renderStats(){
+  let total=0, confirmed=0, doce=0, salgado=0;
+  families.forEach(f=>{
+    const n = f.guests.length;
+    total += n;
+    if(f.confirmed) confirmed += n;
+    if(f.dish === 'doce') doce += n; else salgado += n;
+  });
+  const pct = total ? Math.round((confirmed/total)*100) : 0;
+  document.getElementById('statsSection').innerHTML = `
+    <div class="card"><div class="stat-label">Total de lugares</div><div class="stat-value" style="color:var(--ink)">${total}</div></div>
+    <div class="card"><div class="stat-label">Confirmados</div><div class="stat-value" style="color:var(--green)">${confirmed}<small>${pct}%</small></div></div>
+    <div class="card"><div class="stat-label">Salgado</div><div class="stat-value" style="color:var(--salgado)">${salgado}</div></div>
+    <div class="card"><div class="stat-label">Doce</div><div class="stat-value" style="color:var(--doce)">${doce}</div></div>
+  `;
+}
+
+function renderCityBreakdown(){
+  const section = document.getElementById('citySection');
+  const total = families.reduce((s,f)=>s+f.guests.length,0);
+  if(total === 0){ section.style.display='none'; return; }
+  section.style.display='block';
+  const byCity = {};
+  families.forEach(f=>{ byCity[f.city] = (byCity[f.city]||0) + f.guests.length; });
+  const rows = Object.entries(byCity).sort((a,b)=>b[1]-a[1]).map(([city,count])=>`
+    <div class="city-row">
+      <span class="name">${escapeHtml(city)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(count/total)*100}%"></div></div>
+      <span class="count">${count}</span>
+    </div>
+  `).join('');
+  document.getElementById('cityRows').innerHTML = rows;
+}
+
+function renderFilters(){
+  const el = document.getElementById('filters');
+  if(families.length === 0){ el.style.display='none'; return; }
+  el.style.display='flex';
+  const cities = ["Todas", ...Array.from(new Set(families.map(f=>f.city).filter(Boolean))).sort()];
+  el.innerHTML = cities.map(c=>`<button class="chip ${c===cityFilter?'active':''}" data-city="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+  el.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ cityFilter = btn.dataset.city; render(); });
+  });
+}
+
+function renderFamList(){
+  const el = document.getElementById('famList');
+  const visible = cityFilter==='Todas' ? families : families.filter(f=>f.city===cityFilter);
+  if(visible.length === 0){
+    el.innerHTML = `<p class="empty">Nenhuma família cadastrada ainda.</p>`;
+    return;
+  }
+  el.innerHTML = visible.map(f=>{
+    const dish = DISH[f.dish];
+    const isOpen = openCardId === f.id;
+    return `
+    <div class="fam-card" data-id="${f.id}">
+      <div class="fam-top">
+        <button class="confirm-circle ${f.confirmed?'on':''}" data-action="toggle-confirm" data-id="${f.id}" title="Confirmar presença">✓</button>
+        <div class="fam-info" data-action="toggle-open" data-id="${f.id}">
+          <div class="fam-title-row">
+            <span class="fam-name">${escapeHtml(f.name)}</span>
+            <span class="badge ${dish.cls}">${dish.label}</span>
+            ${!f.confirmed ? '<span class="badge badge-wait">Aguardando confirmação</span>' : ''}
+          </div>
+          <div class="fam-meta">
+            <span>📍 ${escapeHtml(f.city)}</span>
+            <span>👥 ${f.guests.length} ${f.guests.length===1?'lugar':'lugares'}</span>
+          </div>
+        </div>
+        <button class="chevron" data-action="toggle-open" data-id="${f.id}">${isOpen?'▲':'▼'}</button>
+      </div>
+      ${isOpen ? `
+      <div class="fam-body">
+        <div>${f.guests.map(g=>`<span class="guest-chip">${escapeHtml(g.name)}</span>`).join('')}</div>
+        <div class="fam-actions">
+          <button class="btn-mini" data-action="edit" data-id="${f.id}">Editar</button>
+          <button class="btn-mini btn-mini-danger" data-action="delete" data-id="${f.id}">🗑 Remover</button>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('[data-action]').forEach(btn=>{
+    const id = btn.dataset.id;
+    const action = btn.dataset.action;
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if(action === 'toggle-confirm') toggleConfirmed(id);
+      else if(action === 'toggle-open') { openCardId = openCardId===id ? null : id; render(); }
+      else if(action === 'edit') startEdit(id);
+      else if(action === 'delete') deleteFamily(id);
+    });
+  });
+}
+
+function toggleConfirmed(id){
+  const f = families.find(x=>x.id===id);
+  if(f){ f.confirmed = !f.confirmed; saveData(); render(); }
+}
+
+function deleteFamily(id){
+  if(!confirm('Remover esta família da lista?')) return;
+  families = families.filter(f=>f.id!==id);
+  saveData();
+  render();
+}
+
+function startEdit(id){
+  const f = families.find(x=>x.id===id);
+  if(!f) return;
+  draft = { name:f.name, city:f.city, dish:f.dish, confirmed:f.confirmed, guests:f.guests.map(g=>g.name) };
+  editingId = id;
+  openForm();
+}
+
+/* Form handling */
+function openForm(){
+  document.getElementById('formPanel').style.display='block';
+  document.getElementById('openFormBtn').style.display='none';
+  document.getElementById('formTitle').textContent = editingId ? 'Editar família' : 'Nova família';
+  document.getElementById('saveFamBtn').textContent = editingId ? 'Salvar alterações' : 'Adicionar família';
+  document.getElementById('famName').value = draft.name;
+  document.getElementById('famCity').value = draft.city;
+  updateDishButtons();
+  updateConfirmButton();
+  renderGuestFields();
+}
+
+function closeForm(){
+  draft = emptyDraft();
+  editingId = null;
+  document.getElementById('formPanel').style.display='none';
+  document.getElementById('openFormBtn').style.display='flex';
+}
+
+function updateDishButtons(){
+  document.getElementById('dishSalgado').className = draft.dish==='salgado' ? 'active-salgado' : '';
+  document.getElementById('dishDoce').className = draft.dish==='doce' ? 'active-doce' : '';
+}
+function updateConfirmButton(){
+  const btn = document.getElementById('confirmToggle');
+  btn.className = 'confirm-toggle' + (draft.confirmed ? ' on' : '');
+}
+
+function renderGuestFields(){
+  const container = document.getElementById('guestFields');
+  container.innerHTML = draft.guests.map((g,i)=>`
+    <div class="guest-row">
+      <input type="text" data-idx="${i}" class="guest-input" placeholder="Convidado ${i+1}" value="${escapeHtml(g)}" />
+      ${draft.guests.length>1 ? `<button type="button" class="guest-remove" data-idx="${i}">✕</button>` : ''}
+    </div>
+  `).join('');
+  container.querySelectorAll('.guest-input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ draft.guests[+inp.dataset.idx] = inp.value; });
+  });
+  container.querySelectorAll('.guest-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      draft.guests.splice(+btn.dataset.idx,1);
+      renderGuestFields();
+    });
+  });
+}
+
+document.getElementById('openFormBtn').addEventListener('click', openForm);
+document.getElementById('cancelFormBtn').addEventListener('click', closeForm);
+document.getElementById('dishSalgado').addEventListener('click', ()=>{ draft.dish='salgado'; updateDishButtons(); });
+document.getElementById('dishDoce').addEventListener('click', ()=>{ draft.dish='doce'; updateDishButtons(); });
+document.getElementById('confirmToggle').addEventListener('click', ()=>{ draft.confirmed = !draft.confirmed; updateConfirmButton(); });
+document.getElementById('addGuestBtn').addEventListener('click', ()=>{ draft.guests.push(''); renderGuestFields(); });
+document.getElementById('famName').addEventListener('input', e=>{ draft.name = e.target.value; });
+document.getElementById('famCity').addEventListener('input', e=>{ draft.city = e.target.value; });
+
+document.getElementById('saveFamBtn').addEventListener('click', ()=>{
+  const guests = draft.guests.map(g=>g.trim()).filter(Boolean).map(name=>({id:uid(), name}));
+  if(!draft.name.trim() || guests.length===0){
+    alert('Preencha o nome da família e pelo menos um convidado.');
+    return;
+  }
+  if(editingId){
+    const f = families.find(x=>x.id===editingId);
+    Object.assign(f, { name:draft.name.trim(), city:draft.city.trim()||'Sem cidade', dish:draft.dish, confirmed:draft.confirmed, guests });
+  } else {
+    families.push({ id:uid(), name:draft.name.trim(), city:draft.city.trim()||'Sem cidade', dish:draft.dish, confirmed:draft.confirmed, guests });
+  }
+  saveData();
+  closeForm();
+  render();
+});
+
+/* init */
+loadData();
+render();
+</script>
+
+</body>
+</html>
