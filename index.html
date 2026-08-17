@@ -147,21 +147,37 @@
 
   <section id="famList"></section>
 
-  <p class="footer-note">Seus dados ficam salvos automaticamente neste navegador — pode fechar e voltar quando quiser.</p>
+  <p class="footer-note">Os dados ficam salvos na nuvem e sincronizados em tempo real — você e a Gabi veem a mesma lista.</p>
 </main>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD3yGIEngg40x-6aCR9ZJaARYUXfoz6myI",
+  authDomain: "chabarlista-5c83e.firebaseapp.com",
+  projectId: "chabarlista-5c83e",
+  storageBucket: "chabarlista-5c83e.firebasestorage.app",
+  messagingSenderId: "817255330034",
+  appId: "1:817255330034:web:e42fdc3864f7e089cde06b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const listaRef = doc(db, "listaConvidados", "principal");
+
 const DISH = {
   doce: { label: "Doce", cls: "badge-doce" },
   salgado: { label: "Salgado", cls: "badge-salgado" }
 };
-const STORAGE_KEY = "lista-convidados-familias";
 
 let families = [];
 let draft = emptyDraft();
 let editingId = null;
 let cityFilter = "Todas";
 let openCardId = null;
+let firstLoad = true;
 
 function emptyDraft(){
   return { name:"", city:"", dish:"salgado", confirmed:false, guests:[""] };
@@ -169,23 +185,28 @@ function emptyDraft(){
 
 function uid(){ return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2,9); }
 
-function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ families = JSON.parse(raw); }
-  }catch(e){ console.error("Erro ao carregar dados", e); families = []; }
-}
+// Escuta o Firestore em tempo real: qualquer mudança feita por você ou pela Gabi
+// atualiza a tela na hora, nos dois dispositivos.
+const ind = document.getElementById('saveIndicator');
+onSnapshot(listaRef, (snap)=>{
+  families = (snap.exists() && Array.isArray(snap.data().familias)) ? snap.data().familias : [];
+  if(firstLoad){ firstLoad = false; }
+  render();
+}, (error)=>{
+  console.error("Erro ao sincronizar com o Firebase", error);
+  ind.textContent = 'Erro de conexão';
+});
 
 let saveTimeout = null;
 function saveData(){
-  const ind = document.getElementById('saveIndicator');
   ind.textContent = 'Salvando...';
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(()=>{
+  saveTimeout = setTimeout(async ()=>{
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(families));
+      await setDoc(listaRef, { familias: families });
       ind.textContent = '✓ Salvo';
     }catch(e){
+      console.error(e);
       ind.textContent = 'Erro ao salvar';
     }
     setTimeout(()=>{ if(ind.textContent === '✓ Salvo') ind.textContent=''; }, 1500);
@@ -395,9 +416,8 @@ document.getElementById('saveFamBtn').addEventListener('click', ()=>{
   render();
 });
 
-/* init */
-loadData();
-render();
+/* A tela inicial é renderizada automaticamente assim que o onSnapshot
+   acima recebe os dados do Firestore pela primeira vez. */
 </script>
 
 </body>
